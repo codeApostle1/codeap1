@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, ExternalLink } from "lucide-react"
+import { ArrowRight, ExternalLink, MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/server"
 
@@ -19,7 +19,12 @@ export async function FeaturedProjects() {
     .order("created_at", { ascending: false })
     .limit(4)
 
+  const { data: comments } = await supabase
+    .from("project_comments")
+    .select("id, project_id")
+
   const projectsList: Project[] = projects ?? []
+  const commentsList = comments ?? []
 
   return (
     <section id="projects" className="px-6 py-24 scroll-mt-20">
@@ -79,6 +84,14 @@ export async function FeaturedProjects() {
                   <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
                     {project.description}
                   </p>
+
+                  <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span>
+                      {commentsList.filter((c) => c.project_id === project.id).length}{" "}
+                      comments
+                    </span>
+                  </div>
 
                   <Link
                     href={`/projects?id=${project.id}`}

@@ -14,6 +14,17 @@ import {
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
+import { CommentsSection } from "@/components/comments-section"
+
+interface Comment {
+  id: string
+  project_id: string
+  name: string
+  comment: string
+  created_at: string
+  parent_id: string | null
+  is_admin_reply: boolean
+}
 
 interface Project {
   id: string
@@ -23,7 +34,13 @@ interface Project {
   created_at: string
 }
 
-export function ProjectsView({ projects }: { projects: Project[] }) {
+export function ProjectsView({
+  projects,
+  comments,
+}: {
+  projects: Project[]
+  comments: Comment[]
+}) {
   const searchParams = useSearchParams()
   const preselectedId = searchParams.get("id")
 
@@ -156,15 +173,50 @@ export function ProjectsView({ projects }: { projects: Project[] }) {
                 </span>
               </div>
 
-              {/* Iframe */}
-              <div className="flex-1 bg-background">
-                <iframe
-                  src={selectedProject.url}
-                  title={selectedProject.title}
-                  className="h-full w-full border-0"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                />
-              </div>
+              {/* Main Content (Iframe + Comments) */}
+              <ScrollArea className="flex-1">
+                <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto">
+                  {/* Iframe Preview */}
+                  <div className="aspect-video w-full overflow-hidden rounded-xl border border-border/50 bg-background shadow-2xl">
+                    <iframe
+                      src={selectedProject.url}
+                      title={selectedProject.title}
+                      className="h-full w-full border-0"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    />
+                  </div>
+
+                  {/* Description & Links */}
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-3xl font-bold text-foreground">
+                        {selectedProject.title}
+                      </h2>
+                      <Button asChild>
+                        <a
+                          href={selectedProject.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Visit Live Site
+                          <ExternalLink className="ml-2 h-4 w-4" />
+                        </a>
+                      </Button>
+                    </div>
+                    <p className="text-lg text-muted-foreground leading-relaxed">
+                      {selectedProject.description}
+                    </p>
+                  </div>
+
+                  {/* Comments Section */}
+                  <CommentsSection
+                    projectId={selectedProject.id}
+                    initialComments={comments.filter(
+                      (c) => c.project_id === selectedProject.id
+                    )}
+                  />
+                </div>
+              </ScrollArea>
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-4 text-center">

@@ -23,5 +23,16 @@ export default async function AdminPage() {
     .select("*")
     .order("created_at", { ascending: false })
 
-  return <AdminDashboard projects={projects ?? []} userEmail={user.email ?? ""} />
+  const { data: comments } = await supabase
+    .from("project_comments")
+    .select("*")
+    .order("created_at", { ascending: true })
+
+  return (
+    <AdminDashboard
+      projects={projects ?? []}
+      comments={comments ?? []}
+      userEmail={user.email ?? ""}
+    />
+  )
 }

@@ -13,5 +13,10 @@ export default async function ProjectsPage() {
     .select("*")
     .order("created_at", { ascending: false })
 
-  return <ProjectsView projects={projects ?? []} />
+  const { data: comments } = await supabase
+    .from("project_comments")
+    .select("*")
+    .order("created_at", { ascending: true })
+
+  return <ProjectsView projects={projects ?? []} comments={comments ?? []} />
 }
