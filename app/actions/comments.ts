@@ -3,13 +3,13 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
-export async function addComment(formData: FormData) {
+export async function addComment(formData: FormData): Promise<{ error?: string; success?: boolean }> {
     const supabase = await createClient()
 
     const name = (formData.get("name") as string)?.trim()
     const comment = (formData.get("comment") as string)?.trim()
     const projectId = formData.get("project_id") as string
-    const parentId = formData.get("parent_id") as string || null
+    const parentId = (formData.get("parent_id") as string) || null
 
     if (!name || !comment || !projectId) {
         return { error: "Name, comment, and project are required" }
@@ -32,6 +32,7 @@ export async function addComment(formData: FormData) {
     })
 
     if (error) {
+        console.error("Error adding comment:", error)
         return { error: error.message }
     }
 
@@ -45,6 +46,7 @@ export async function getComments(project_id: string) {
         .from("project_comments")
         .select("*")
         .eq("project_id", project_id)
+        .eq("is_approved", true)
         .order("created_at", { ascending: true })
 
     if (error) {
