@@ -6,11 +6,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    turbo: {
-      root: '.',
-    },
-  },
+  // experimental: {
+  //   turbo: {
+  //     root: '.',
+  //   },
+  // },
 }
 
 export default nextConfig
