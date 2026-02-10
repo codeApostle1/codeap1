@@ -1,4 +1,9 @@
 /* CSS Custom Properties */
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 :root {
     --primary-color: #3490dc;
     --secondary-color: #ffed4a;
