@@ -1,10 +1,22 @@
 import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { notFound, redirect } from "next/navigation"
 import { AdminDashboard } from "@/components/admin-dashboard"
 
 export const metadata = {
   title: "Admin | Portfolio",
   description: "Manage your portfolio projects.",
+}
+
+
+const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean)
+
+function isAdminEmail(email?: string | null) {
+  if (!email) return false
+  if (adminEmails.length === 0) return false
+  return adminEmails.includes(email.toLowerCase())
 }
 
 export default async function AdminPage() {
@@ -16,6 +28,10 @@ export default async function AdminPage() {
 
   if (!user) {
     redirect("/auth/login")
+  }
+
+  if (!isAdminEmail(user.email)) {
+    notFound()
   }
 
   const { data: projects } = await supabase
