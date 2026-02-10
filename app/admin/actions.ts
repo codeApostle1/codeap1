@@ -9,8 +9,12 @@ function isAdminEmail(email?: string | null) {
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
 
-  if (!email) return false
-  if (adminEmails.length === 0) return true
+// <<<<<<< codex/review-folder-structure-and-ui-compliance-qzk9s9
+//   if (!email) return false
+//   if (adminEmails.length === 0) return true
+// =======
+  if (!email || adminEmails.length === 0) return false
+
   return adminEmails.includes(email.toLowerCase())
 }
 
