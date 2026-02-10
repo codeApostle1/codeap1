@@ -10,6 +10,9 @@
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
 
+    --font-inter: "Inter", "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --font-jetbrains-mono: "JetBrains Mono", "SFMono-Regular", "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
 
@@ -81,5 +84,8 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
