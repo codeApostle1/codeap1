@@ -16,6 +16,7 @@ export default async function ProjectsPage() {
   const { data: comments } = await supabase
     .from("project_comments")
     .select("*")
+    .or("is_approved.eq.true,is_admin_reply.eq.true")
     .order("created_at", { ascending: true })
 
   return <ProjectsView projects={projects ?? []} comments={comments ?? []} />

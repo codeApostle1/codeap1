@@ -5,7 +5,7 @@ import { MessageSquare, Send, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { submitProjectComment } from "@/app/actions/reviews"
+import { addComment } from "@/app/actions/comments"
 import { createClient } from "@/lib/supabase/client"
 
 interface Comment {
@@ -51,7 +51,7 @@ export function ProjectComments({ projectId }: { projectId: string }) {
     setIsSubmitting(true)
     setError(null)
     formData.append("project_id", projectId)
-    const result = await submitProjectComment(formData)
+    const result = await addComment(formData)
     if (result.error) {
       setError(result.error)
     } else {

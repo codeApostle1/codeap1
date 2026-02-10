@@ -7,6 +7,18 @@ export const metadata = {
   description: "Manage your portfolio projects.",
 }
 
+
+const adminEmails = (process.env.ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean)
+
+function isAdminEmail(email?: string | null) {
+  if (!email) return false
+  if (adminEmails.length === 0) return true
+  return adminEmails.includes(email.toLowerCase())
+}
+
 export default async function AdminPage() {
   const supabase = await createClient()
 
@@ -15,6 +27,10 @@ export default async function AdminPage() {
   } = await supabase.auth.getUser()
 
   if (!user) {
+    redirect("/auth/login")
+  }
+
+  if (!isAdminEmail(user.email)) {
     redirect("/auth/login")
   }
 

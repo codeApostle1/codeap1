@@ -6,6 +6,7 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -50,11 +51,15 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-2 md:flex">
+          <ThemeToggle />
           <Button asChild size="sm">
             <Link href="/#contact">Get In Touch</Link>
           </Button>
         </div>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
 
         {/* Mobile toggle */}
         <Button
@@ -66,6 +71,7 @@ export function Navbar() {
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
+        </div>
       </nav>
 
       {/* Mobile menu */}
