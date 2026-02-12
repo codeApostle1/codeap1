@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -18,18 +18,13 @@ import { Textarea } from "@/components/ui/textarea"
 
 import {
   addProject,
-  deleteProject,
-  updateProject,
-  deleteComment,
-  replyToComment,
   approveComment,
+  deleteComment,
+  deleteProject,
+  replyToComment,
+  updateProject,
 } from "@/app/admin/actions"
-
 import { createClient } from "@/lib/supabase/client"
-
-/* =======================
-   TYPES
-======================= */
 
 interface Project {
   id: string
@@ -37,6 +32,11 @@ interface Project {
   description: string
   url: string
   created_at: string
+  image_url?: string | null
+  image_focus_x?: number | null
+  image_focus_y?: number | null
+  published_at?: string | null
+  show_published_date?: boolean | null
 }
 
 interface Comment {
@@ -50,10 +50,6 @@ interface Comment {
   is_approved: boolean
 }
 
-/* =======================
-   COMPONENT
-======================= */
-
 export function AdminDashboard({
   projects,
   comments,
@@ -65,7 +61,6 @@ export function AdminDashboard({
 }) {
   const router = useRouter()
 
-  /* ---------- UI STATE ---------- */
   const [activeTab, setActiveTab] = useState<"projects" | "comments">("projects")
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
@@ -73,7 +68,47 @@ export function AdminDashboard({
   const [error, setError] = useState<string | null>(null)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
-  /* ---------- ACTION HANDLERS ---------- */
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageFocusX, setImageFocusX] = useState(50)
+  const [imageFocusY, setImageFocusY] = useState(50)
+  const [publishedAt, setPublishedAt] = useState("")
+  const [showPublishedDate, setShowPublishedDate] = useState(true)
+
+  useEffect(() => {
+    const focusX = Math.round(editingProject?.image_focus_x ?? 50)
+    const focusY = Math.round(editingProject?.image_focus_y ?? 50)
+    setImageFocusX(focusX)
+    setImageFocusY(focusY)
+    setImagePreview(editingProject?.image_url ?? null)
+    setPublishedAt(editingProject?.published_at ?? "")
+    setShowPublishedDate(editingProject?.show_published_date ?? true)
+  }, [editingProject])
+
+  const activeImageUrl = useMemo(
+    () => imagePreview ?? editingProject?.image_url ?? null,
+    [imagePreview, editingProject?.image_url]
+  )
+
+  const handleImageSelect = (file?: File | null) => {
+    if (!file) {
+      setImagePreview(editingProject?.image_url ?? null)
+      return
+    }
+
+    const url = URL.createObjectURL(file)
+    setImagePreview(url)
+  }
+
+  const resetFormState = () => {
+    setShowAddForm(false)
+    setEditingProject(null)
+    setImagePreview(null)
+    setImageFocusX(50)
+    setImageFocusY(50)
+    setPublishedAt("")
+    setShowPublishedDate(true)
+    setError(null)
+  }
 
   const handleAdd = async (formData: FormData) => {
     setIsSubmitting(true)
@@ -84,7 +119,7 @@ export function AdminDashboard({
     if (result?.error) {
       setError(result.error)
     } else {
-      setShowAddForm(false)
+      resetFormState()
     }
 
     setIsSubmitting(false)
@@ -102,7 +137,7 @@ export function AdminDashboard({
     if (result?.error) {
       setError(result.error)
     } else {
-      setEditingProject(null)
+      resetFormState()
     }
 
     setIsSubmitting(false)
@@ -121,13 +156,8 @@ export function AdminDashboard({
     router.push("/")
   }
 
-  /* =======================
-     RENDER
-  ======================= */
-
   return (
     <div className="min-h-screen bg-background">
-      {/* ================= HEADER ================= */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link href="/" className="font-mono text-lg font-bold">
@@ -137,9 +167,7 @@ export function AdminDashboard({
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:block">
-              {userEmail}
-            </span>
+            <span className="hidden text-sm text-muted-foreground sm:block">{userEmail}</span>
 
             <Button asChild variant="ghost" size="sm">
               <Link href="/">
@@ -161,16 +189,12 @@ export function AdminDashboard({
         </div>
       </header>
 
-      {/* ================= MAIN ================= */}
       <main className="mx-auto max-w-5xl px-6 py-10">
-        {/* Tabs */}
         <div className="mb-8 flex gap-4 border-b border-border/50">
           <button
             onClick={() => setActiveTab("projects")}
             className={`pb-4 text-sm font-medium ${
-              activeTab === "projects"
-                ? "border-b-2 border-primary"
-                : "text-muted-foreground"
+              activeTab === "projects" ? "border-b-2 border-primary" : "text-muted-foreground"
             }`}
           >
             Projects
@@ -179,30 +203,28 @@ export function AdminDashboard({
           <button
             onClick={() => setActiveTab("comments")}
             className={`pb-4 text-sm font-medium ${
-              activeTab === "comments"
-                ? "border-b-2 border-primary"
-                : "text-muted-foreground"
+              activeTab === "comments" ? "border-b-2 border-primary" : "text-muted-foreground"
             }`}
           >
             Comments
           </button>
         </div>
 
-        {/* ================= PROJECTS TAB ================= */}
         {activeTab === "projects" && (
           <>
-            <div className="mb-8 flex justify-between">
+            <div className="mb-8 flex justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold">Projects</h1>
-                <p className="text-sm text-muted-foreground">
-                  Manage portfolio projects
-                </p>
+                <p className="text-sm text-muted-foreground">Manage portfolio projects</p>
               </div>
 
               <Button
                 onClick={() => {
                   setShowAddForm(true)
                   setEditingProject(null)
+                  setImagePreview(null)
+                  setPublishedAt("")
+                  setShowPublishedDate(true)
                 }}
               >
                 <Plus className="mr-1 h-4 w-4" />
@@ -210,18 +232,14 @@ export function AdminDashboard({
               </Button>
             </div>
 
-            {error && (
-              <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
+            {error && <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 
-            {/* ADD / EDIT FORM */}
             {(showAddForm || editingProject) && (
-              <form
-                action={editingProject ? handleUpdate : handleAdd}
-                className="mb-8 rounded-xl border p-6"
-              >
+              <form action={editingProject ? handleUpdate : handleAdd} className="mb-8 rounded-xl border p-6">
+                <input type="hidden" name="image_focus_x" value={imageFocusX} />
+                <input type="hidden" name="image_focus_y" value={imageFocusY} />
+                <input type="hidden" name="existing_image_url" value={editingProject?.image_url ?? ""} />
+
                 <div className="grid gap-4">
                   <div>
                     <Label>Title</Label>
@@ -230,56 +248,134 @@ export function AdminDashboard({
 
                   <div>
                     <Label>Description</Label>
-                    <Textarea
-                      name="description"
-                      defaultValue={editingProject?.description}
-                    />
+                    <Textarea name="description" defaultValue={editingProject?.description} />
                   </div>
 
                   <div>
                     <Label>URL</Label>
-                    <Input
-                      name="url"
-                      type="url"
-                      defaultValue={editingProject?.url}
-                    />
+                    <Input name="url" type="url" defaultValue={editingProject?.url} />
                   </div>
 
-                  <Button disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save"}
-                  </Button>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label>Published Date</Label>
+                      <Input
+                        name="published_at"
+                        type="date"
+                        value={publishedAt}
+                        onChange={(event) => setPublishedAt(event.target.value)}
+                      />
+                    </div>
+                    <label className="mt-7 flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        name="show_published_date"
+                        type="checkbox"
+                        checked={showPublishedDate}
+                        onChange={(event) => setShowPublishedDate(event.target.checked)}
+                        className="h-4 w-4 rounded border-border"
+                      />
+                      Show published date on homepage cards
+                    </label>
+                  </div>
+
+                  <div>
+                    <Label>Project Image (optional)</Label>
+                    <Input
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => handleImageSelect(event.target.files?.[0] ?? null)}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">Upload a cover image and adjust crop focus.</p>
+                  </div>
+
+                  {activeImageUrl && (
+                    <div className="rounded-xl border border-border/70 bg-card/50 p-4">
+                      <div className="mb-3 aspect-[16/9] overflow-hidden rounded-lg border border-border/70">
+                        <img
+                          src={activeImageUrl}
+                          alt="Project preview"
+                          className="h-full w-full object-cover"
+                          style={{ objectPosition: `${imageFocusX}% ${imageFocusY}%` }}
+                        />
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <Label>Crop focus X ({imageFocusX}%)</Label>
+                          <Input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={imageFocusX}
+                            onChange={(event) => setImageFocusX(Number(event.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label>Crop focus Y ({imageFocusY}%)</Label>
+                          <Input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={imageFocusY}
+                            onChange={(event) => setImageFocusY(Number(event.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
+                    <Button type="button" variant="ghost" onClick={resetFormState}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </form>
             )}
 
-            {/* PROJECT LIST */}
             <div className="space-y-3">
               {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="flex items-center justify-between rounded border p-4"
-                >
-                  <div>
-                    <h3 className="font-semibold">{project.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {project.description}
-                    </p>
+                <div key={project.id} className="flex items-center justify-between rounded border p-4">
+                  <div className="min-w-0 flex items-center gap-3">
+                    {project.image_url && (
+                      <div className="h-12 w-16 overflow-hidden rounded border border-border/60">
+                        <img
+                          src={project.image_url}
+                          alt={project.title}
+                          className="h-full w-full object-cover"
+                          style={{
+                            objectPosition: `${project.image_focus_x ?? 50}% ${project.image_focus_y ?? 50}%`,
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold">{project.title}</h3>
+                      <p className="line-clamp-1 text-xs text-muted-foreground">{project.description}</p>
+                      {project.published_at && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Published: {project.published_at}
+                          {project.show_published_date ? " (visible)" : " (hidden)"}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => setEditingProject(project)}
+                      onClick={() => {
+                        setEditingProject(project)
+                        setShowAddForm(false)
+                      }}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
 
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDelete(project.id)}
-                    >
+                    <Button size="icon" variant="ghost" onClick={() => handleDelete(project.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -289,21 +385,14 @@ export function AdminDashboard({
           </>
         )}
 
-        {/* ================= COMMENTS TAB ================= */}
         {activeTab === "comments" && (
           <div className="space-y-6">
             <div className="mb-8">
               <h1 className="text-2xl font-bold">Comments</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage and reply to project comments
-              </p>
+              <p className="text-sm text-muted-foreground">Manage and reply to project comments</p>
             </div>
 
-            {error && (
-              <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
+            {error && <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 
             <div className="space-y-4">
               {comments.length === 0 ? (
@@ -398,22 +487,12 @@ export function AdminDashboard({
                           router.refresh()
                         }}
                       >
-                        <Textarea
-                          name="reply"
-                          placeholder="Write your admin reply..."
-                          required
-                          className="text-sm"
-                        />
+                        <Textarea name="reply" placeholder="Write your admin reply..." required className="text-sm" />
                         <div className="flex gap-2">
                           <Button size="sm" type="submit" disabled={isSubmitting}>
                             {isSubmitting ? "Sending..." : "Send Reply"}
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            type="button"
-                            onClick={() => setReplyingTo(null)}
-                          >
+                          <Button size="sm" variant="ghost" type="button" onClick={() => setReplyingTo(null)}>
                             Cancel
                           </Button>
                         </div>

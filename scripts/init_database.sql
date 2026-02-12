@@ -4,6 +4,11 @@ CREATE TABLE IF NOT EXISTS public.projects (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   url TEXT NOT NULL,
+  image_url TEXT,
+  image_focus_x INTEGER DEFAULT 50,
+  image_focus_y INTEGER DEFAULT 50,
+  published_at DATE,
+  show_published_date BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
 );
@@ -46,6 +51,14 @@ BEGIN
     ALTER TABLE public.project_comments RENAME COLUMN approved TO is_approved;
   END IF;
 END $$;
+
+
+-- Projects image metadata migrations
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS image_focus_x INTEGER DEFAULT 50;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS image_focus_y INTEGER DEFAULT 50;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS published_at DATE;
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS show_published_date BOOLEAN DEFAULT true;
 
 -- 3. Security (RLS)
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;

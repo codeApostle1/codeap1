@@ -42,16 +42,29 @@ export async function addProject(formData: FormData) {
   const title = formData.get("title") as string
   const description = formData.get("description") as string
   const url = formData.get("url") as string
+  const image = formData.get("image") as File | null
+  const imageFocusX = parseFocus(formData.get("image_focus_x"), 50)
+  const imageFocusY = parseFocus(formData.get("image_focus_y"), 50)
+  const publishedAt = parsePublishedDate(formData.get("published_at"))
+  const showPublishedDate = parseShowDate(formData.get("show_published_date"))
 
   if (!title || !description || !url) {
     return { error: "All fields are required" }
   }
+
+  const { imageUrl, error: imageError } = await uploadProjectImage(supabase, image)
+  if (imageError) return { error: imageError }
 
   const { error } = await supabase.from("projects").insert({
     title,
     description,
     url,
     user_id: user.id,
+    image_url: imageUrl,
+    image_focus_x: imageFocusX,
+    image_focus_y: imageFocusY,
+    published_at: publishedAt,
+    show_published_date: showPublishedDate,
   })
 
   if (error) {
@@ -87,14 +100,34 @@ export async function updateProject(id: string, formData: FormData) {
   const title = formData.get("title") as string
   const description = formData.get("description") as string
   const url = formData.get("url") as string
+  const existingImageUrl = (formData.get("existing_image_url") as string) || null
+  const image = formData.get("image") as File | null
+  const imageFocusX = parseFocus(formData.get("image_focus_x"), 50)
+  const imageFocusY = parseFocus(formData.get("image_focus_y"), 50)
+  const publishedAt = parsePublishedDate(formData.get("published_at"))
+  const showPublishedDate = parseShowDate(formData.get("show_published_date"))
 
   if (!title || !description || !url) {
     return { error: "All fields are required" }
   }
 
+  const { imageUrl, error: imageError } = await uploadProjectImage(supabase, image)
+  if (imageError) return { error: imageError }
+
+  const finalImageUrl = imageUrl ?? existingImageUrl
+
   const { error } = await supabase
     .from("projects")
-    .update({ title, description, url })
+    .update({
+      title,
+      description,
+      url,
+      image_url: finalImageUrl,
+      image_focus_x: imageFocusX,
+      image_focus_y: imageFocusY,
+      published_at: publishedAt,
+      show_published_date: showPublishedDate,
+    })
     .eq("id", id)
 
   if (error) {
