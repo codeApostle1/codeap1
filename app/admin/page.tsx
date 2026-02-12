@@ -53,11 +53,11 @@ export default async function AdminPage() {
     .order("created_at", { ascending: true })
 
   return (
-    <div>Helloooo im an admin</div>
-    // <AdminDashboard
-    //   projects={projects ?? []}
-    //   comments={comments ?? []}
-    //   userEmail={user.email ?? ""}
-    // />
+    
+    <AdminDashboard
+      projects={projects ?? []}
+      comments={comments ?? []}
+      userEmail={user.email ?? ""}
+    />
   )
 }
