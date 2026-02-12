@@ -1,18 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import {
-  Plus,
-  Trash2,
-  Pencil,
-  ExternalLink,
-  LogOut,
-  FolderOpen,
-  Home,
-  X,
-} from "lucide-react"
+import { Home, LogOut, Pencil, Plus, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,18 +12,13 @@ import { Textarea } from "@/components/ui/textarea"
 
 import {
   addProject,
-  deleteProject,
-  updateProject,
-  deleteComment,
-  replyToComment,
   approveComment,
+  deleteComment,
+  deleteProject,
+  replyToComment,
+  updateProject,
 } from "@/app/admin/actions"
-
 import { createClient } from "@/lib/supabase/client"
-
-/* =======================
-   TYPES
-======================= */
 
 interface Project {
   id: string
@@ -40,6 +26,11 @@ interface Project {
   description: string
   url: string
   created_at: string
+  image_url?: string | null
+  image_focus_x?: number | null
+  image_focus_y?: number | null
+  published_at?: string | null
+  show_published_date?: boolean | null
 }
 
 interface Comment {
@@ -53,10 +44,6 @@ interface Comment {
   is_approved: boolean
 }
 
-/* =======================
-   COMPONENT
-======================= */
-
 export function AdminDashboard({
   projects,
   comments,
@@ -68,7 +55,6 @@ export function AdminDashboard({
 }) {
   const router = useRouter()
 
-  /* ---------- UI STATE ---------- */
   const [activeTab, setActiveTab] = useState<"projects" | "comments">("projects")
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
@@ -76,7 +62,82 @@ export function AdminDashboard({
   const [error, setError] = useState<string | null>(null)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
-  /* ---------- ACTION HANDLERS ---------- */
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageFocusX, setImageFocusX] = useState(50)
+  const [imageFocusY, setImageFocusY] = useState(50)
+  const [publishedAt, setPublishedAt] = useState("")
+  const [showPublishedDate, setShowPublishedDate] = useState(true)
+
+  const objectUrlRef = useRef<string | null>(null)
+
+  const clearObjectPreview = () => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current)
+      objectUrlRef.current = null
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current)
+      }
+    }
+  }, [])
+
+  const startAddProject = () => {
+    clearObjectPreview()
+    setShowAddForm(true)
+    setEditingProject(null)
+    setImagePreview(null)
+    setImageFocusX(50)
+    setImageFocusY(50)
+    setPublishedAt("")
+    setShowPublishedDate(true)
+    setError(null)
+  }
+
+  const startEditProject = (project: Project) => {
+    clearObjectPreview()
+    setEditingProject(project)
+    setShowAddForm(false)
+    setImagePreview(project.image_url ?? null)
+    setImageFocusX(Math.round(project.image_focus_x ?? 50))
+    setImageFocusY(Math.round(project.image_focus_y ?? 50))
+    setPublishedAt(project.published_at ?? "")
+    setShowPublishedDate(project.show_published_date ?? true)
+    setError(null)
+  }
+
+  const activeImageUrl = useMemo(
+    () => imagePreview ?? editingProject?.image_url ?? null,
+    [imagePreview, editingProject?.image_url]
+  )
+
+  const handleImageSelect = (file?: File | null) => {
+    clearObjectPreview()
+
+    if (!file) {
+      setImagePreview(editingProject?.image_url ?? null)
+      return
+    }
+
+    const url = URL.createObjectURL(file)
+    objectUrlRef.current = url
+    setImagePreview(url)
+  }
+
+  const resetFormState = () => {
+    clearObjectPreview()
+    setShowAddForm(false)
+    setEditingProject(null)
+    setImagePreview(null)
+    setImageFocusX(50)
+    setImageFocusY(50)
+    setPublishedAt("")
+    setShowPublishedDate(true)
+    setError(null)
+  }
 
   const handleAdd = async (formData: FormData) => {
     setIsSubmitting(true)
@@ -87,7 +148,7 @@ export function AdminDashboard({
     if (result?.error) {
       setError(result.error)
     } else {
-      setShowAddForm(false)
+      resetFormState()
     }
 
     setIsSubmitting(false)
@@ -105,7 +166,7 @@ export function AdminDashboard({
     if (result?.error) {
       setError(result.error)
     } else {
-      setEditingProject(null)
+      resetFormState()
     }
 
     setIsSubmitting(false)
@@ -124,13 +185,8 @@ export function AdminDashboard({
     router.push("/")
   }
 
-  /* =======================
-     RENDER
-  ======================= */
-
   return (
     <div className="min-h-screen bg-background">
-      {/* ================= HEADER ================= */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link href="/" className="font-mono text-lg font-bold">
@@ -140,9 +196,7 @@ export function AdminDashboard({
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:block">
-              {userEmail}
-            </span>
+            <span className="hidden text-sm text-muted-foreground sm:block">{userEmail}</span>
 
             <Button asChild variant="ghost" size="sm">
               <Link href="/">
@@ -164,16 +218,12 @@ export function AdminDashboard({
         </div>
       </header>
 
-      {/* ================= MAIN ================= */}
       <main className="mx-auto max-w-5xl px-6 py-10">
-        {/* Tabs */}
         <div className="mb-8 flex gap-4 border-b border-border/50">
           <button
             onClick={() => setActiveTab("projects")}
             className={`pb-4 text-sm font-medium ${
-              activeTab === "projects"
-                ? "border-b-2 border-primary"
-                : "text-muted-foreground"
+              activeTab === "projects" ? "border-b-2 border-primary" : "text-muted-foreground"
             }`}
           >
             Projects
@@ -182,49 +232,37 @@ export function AdminDashboard({
           <button
             onClick={() => setActiveTab("comments")}
             className={`pb-4 text-sm font-medium ${
-              activeTab === "comments"
-                ? "border-b-2 border-primary"
-                : "text-muted-foreground"
+              activeTab === "comments" ? "border-b-2 border-primary" : "text-muted-foreground"
             }`}
           >
             Comments
           </button>
         </div>
 
-        {/* ================= PROJECTS TAB ================= */}
         {activeTab === "projects" && (
           <>
-            <div className="mb-8 flex justify-between">
+            <div className="mb-8 flex justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-bold">Projects</h1>
-                <p className="text-sm text-muted-foreground">
-                  Manage portfolio projects
-                </p>
+                <p className="text-sm text-muted-foreground">Manage portfolio projects</p>
               </div>
 
               <Button
-                onClick={() => {
-                  setShowAddForm(true)
-                  setEditingProject(null)
-                }}
+                onClick={startAddProject}
               >
                 <Plus className="mr-1 h-4 w-4" />
                 Add Project
               </Button>
             </div>
 
-            {error && (
-              <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
+            {error && <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 
-            {/* ADD / EDIT FORM */}
             {(showAddForm || editingProject) && (
-              <form
-                action={editingProject ? handleUpdate : handleAdd}
-                className="mb-8 rounded-xl border p-6"
-              >
+              <form action={editingProject ? handleUpdate : handleAdd} className="mb-8 rounded-xl border p-6">
+                <input type="hidden" name="image_focus_x" value={imageFocusX} />
+                <input type="hidden" name="image_focus_y" value={imageFocusY} />
+                <input type="hidden" name="existing_image_url" value={editingProject?.image_url ?? ""} />
+
                 <div className="grid gap-4">
                   <div>
                     <Label>Title</Label>
@@ -233,56 +271,131 @@ export function AdminDashboard({
 
                   <div>
                     <Label>Description</Label>
-                    <Textarea
-                      name="description"
-                      defaultValue={editingProject?.description}
-                    />
+                    <Textarea name="description" defaultValue={editingProject?.description} />
                   </div>
 
                   <div>
                     <Label>URL</Label>
-                    <Input
-                      name="url"
-                      type="url"
-                      defaultValue={editingProject?.url}
-                    />
+                    <Input name="url" type="url" defaultValue={editingProject?.url} />
                   </div>
 
-                  <Button disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save"}
-                  </Button>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label>Published Date</Label>
+                      <Input
+                        name="published_at"
+                        type="date"
+                        value={publishedAt}
+                        onChange={(event) => setPublishedAt(event.target.value)}
+                      />
+                    </div>
+                    <label className="mt-7 flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        name="show_published_date"
+                        type="checkbox"
+                        checked={showPublishedDate}
+                        onChange={(event) => setShowPublishedDate(event.target.checked)}
+                        className="h-4 w-4 rounded border-border"
+                      />
+                      Show published date on homepage cards
+                    </label>
+                  </div>
+
+                  <div>
+                    <Label>Project Image (optional)</Label>
+                    <Input
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => handleImageSelect(event.target.files?.[0] ?? null)}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">Upload a cover image and adjust crop focus.</p>
+                  </div>
+
+                  {activeImageUrl && (
+                    <div className="rounded-xl border border-border/70 bg-card/50 p-4">
+                      <div className="mb-3 aspect-[16/9] overflow-hidden rounded-lg border border-border/70">
+                        <img
+                          src={activeImageUrl}
+                          alt="Project preview"
+                          className="h-full w-full object-cover"
+                          style={{ objectPosition: `${imageFocusX}% ${imageFocusY}%` }}
+                        />
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div>
+                          <Label>Crop focus X ({imageFocusX}%)</Label>
+                          <Input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={imageFocusX}
+                            onChange={(event) => setImageFocusX(Number(event.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label>Crop focus Y ({imageFocusY}%)</Label>
+                          <Input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={imageFocusY}
+                            onChange={(event) => setImageFocusY(Number(event.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button disabled={isSubmitting}>{isSubmitting ? "Saving..." : "Save"}</Button>
+                    <Button type="button" variant="ghost" onClick={resetFormState}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </form>
             )}
 
-            {/* PROJECT LIST */}
             <div className="space-y-3">
               {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="flex items-center justify-between rounded border p-4"
-                >
-                  <div>
-                    <h3 className="font-semibold">{project.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {project.description}
-                    </p>
+                <div key={project.id} className="flex items-center justify-between rounded border p-4">
+                  <div className="min-w-0 flex items-center gap-3">
+                    {project.image_url && (
+                      <div className="h-12 w-16 overflow-hidden rounded border border-border/60">
+                        <img
+                          src={project.image_url}
+                          alt={project.title}
+                          className="h-full w-full object-cover"
+                          style={{
+                            objectPosition: `${project.image_focus_x ?? 50}% ${project.image_focus_y ?? 50}%`,
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold">{project.title}</h3>
+                      <p className="line-clamp-1 text-xs text-muted-foreground">{project.description}</p>
+                      {project.published_at && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Published: {project.published_at}
+                          {project.show_published_date ? " (visible)" : " (hidden)"}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-2">
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => setEditingProject(project)}
+                      onClick={() => startEditProject(project)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
 
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleDelete(project.id)}
-                    >
+                    <Button size="icon" variant="ghost" onClick={() => handleDelete(project.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -292,21 +405,14 @@ export function AdminDashboard({
           </>
         )}
 
-        {/* ================= COMMENTS TAB ================= */}
         {activeTab === "comments" && (
           <div className="space-y-6">
             <div className="mb-8">
               <h1 className="text-2xl font-bold">Comments</h1>
-              <p className="text-sm text-muted-foreground">
-                Manage and reply to project comments
-              </p>
+              <p className="text-sm text-muted-foreground">Manage and reply to project comments</p>
             </div>
 
-            {error && (
-              <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
+            {error && <div className="mb-6 rounded bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
 
             <div className="space-y-4">
               {comments.length === 0 ? (
@@ -401,22 +507,12 @@ export function AdminDashboard({
                           router.refresh()
                         }}
                       >
-                        <Textarea
-                          name="reply"
-                          placeholder="Write your admin reply..."
-                          required
-                          className="text-sm"
-                        />
+                        <Textarea name="reply" placeholder="Write your admin reply..." required className="text-sm" />
                         <div className="flex gap-2">
                           <Button size="sm" type="submit" disabled={isSubmitting}>
                             {isSubmitting ? "Sending..." : "Send Reply"}
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            type="button"
-                            onClick={() => setReplyingTo(null)}
-                          >
+                          <Button size="sm" variant="ghost" type="button" onClick={() => setReplyingTo(null)}>
                             Cancel
                           </Button>
                         </div>
@@ -432,381 +528,3 @@ export function AdminDashboard({
     </div>
   )
 }
-
-
-
-
-// "use client"
-
-// import { useState } from "react"
-// import { useRouter } from "next/navigation"
-// import Link from "next/link"
-// import {
-//   Plus,
-//   Trash2,
-//   Pencil,
-//   ExternalLink,
-//   LogOut,
-//   FolderOpen,
-//   Home,
-//   X,
-// } from "lucide-react"
-// import { Button } from "@/components/ui/button"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import { Textarea } from "@/components/ui/textarea"
-// import {
-//   addProject,
-//   deleteProject,
-//   updateProject,
-//   deleteComment,
-//   replyToComment,
-//   approveComment,
-// } from "@/app/admin/actions"
-// import { createClient } from "@/lib/supabase/client"
-
-// interface Project {
-//   id: string
-//   title: string
-//   description: string
-//   url: string
-//   created_at: string
-// }
-
-// interface Comment {
-//   id: string
-//   project_id: string
-//   name: string
-//   comment: string
-//   created_at: string
-//   parent_id: string | null
-//   is_admin_reply: boolean
-//   is_approved: boolean
-// }
-
-// export function AdminDashboard({
-//   projects,
-//   comments,
-//   userEmail,
-// }: {
-//   projects: Project[]
-//   comments: Comment[]
-//   userEmail: string
-// }) {
-//   const router = useRouter()
-//   const [activeTab, setActiveTab] = useState<"projects" | "comments">("projects")
-//   const [showAddForm, setShowAddForm] = useState(false)
-//   const [editingProject, setEditingProject] = useState<Project | null>(null)
-//   const [isSubmitting, setIsSubmitting] = useState(false)
-//   const [error, setError] = useState<string | null>(null)
-//   const [replyingTo, setReplyingTo] = useState<string | null>(null)
-
-//   const handleAdd = async (formData: FormData) => {
-//     setIsSubmitting(true)
-//     setError(null)
-//     const result = await addProject(formData)
-//     if (result.error) {
-//       setError(result.error)
-//     } else {
-//       setShowAddForm(false)
-//     }
-//     setIsSubmitting(false)
-//     router.refresh()
-//   }
-
-//   const handleUpdate = async (formData: FormData) => {
-//     if (!editingProject) return
-//     setIsSubmitting(true)
-//     setError(null)
-//     const result = await updateProject(editingProject.id, formData)
-//     if (result.error) {
-//       setError(result.error)
-//     } else {
-//       setEditingProject(null)
-//     }
-//     setIsSubmitting(false)
-//     router.refresh()
-//   }
-
-//   const handleDelete = async (id: string) => {
-//     const result = await deleteProject(id)
-//     if (result.error) {
-//       setError(result.error)
-//     }
-//     router.refresh()
-//   }
-
-//   const handleLogout = async () => {
-//     const supabase = createClient()
-//     await supabase.auth.signOut()
-//     router.push("/")
-//   }
-
-//   const handleDeleteComment = async (id: string) => {
-//     const result = await deleteComment(id)
-//     if (result.error) setError(result.error)
-//     router.refresh()
-//   }
-
-//   const handleApproveComment = async (id: string) => {
-//     const result = await approveComment(id)
-//     if (result.error) setError(result.error)
-//     router.refresh()
-//   }
-
-//   const handleReply = async (commentId: string, projectId: string, formData: FormData) => {
-//     const content = formData.get("reply") as string
-//     if (!content) return
-
-//     setIsSubmitting(true)
-//     const result = await replyToComment(commentId, projectId, content)
-//     if (result.error) {
-//       setError(result.error)
-//     } else {
-//       setReplyingTo(null)
-//     }
-//     setIsSubmitting(false)
-//     router.refresh()
-//   }
-
-//   return (
-//     <div className="min-h-screen bg-background">
-//       {/* Admin header */}
-//       <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl">
-//         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-//           <div className="flex items-center gap-3">
-//             <Link
-//               href="/"
-//               className="font-mono text-lg font-bold text-foreground"
-//             >
-//               {"<"}
-//               <span className="text-primary">admin</span>
-//               {"/>"}
-//             </Link>
-//           </div>
-//           <div className="flex items-center gap-3">
-//             <span className="hidden text-sm text-muted-foreground sm:block">
-//               {userEmail}
-//             </span>
-//             <Button asChild variant="ghost" size="sm">
-//               <Link href="/">
-//                 <Home className="mr-1 h-4 w-4" />
-//                 <span className="hidden sm:inline">Portfolio</span>
-//               </Link>
-//             </Button>
-//             <Button
-//               variant="ghost"
-//               size="sm"
-//               onClick={handleLogout}
-//               className="text-muted-foreground hover:text-destructive"
-//             >
-//               <LogOut className="mr-1 h-4 w-4" />
-//               <span className="hidden sm:inline">Logout</span>
-//             </Button>
-//           </div>
-//         </div>
-//       </header>
-
-//       <main className="mx-auto max-w-5xl px-6 py-10">
-//         {/* Tabs */}
-//         <div className="mb-8 flex gap-4 border-b border-border/50">
-//           <button
-//             onClick={() => setActiveTab("projects")}
-//             className={`pb-4 text-sm font-medium transition-colors ${activeTab === "projects"
-//                 ? "border-b-2 border-primary text-foreground"
-//                 : "text-muted-foreground hover:text-foreground"
-//               }`}
-//           >
-//             Projects
-//           </button>
-//           <button
-//             onClick={() => setActiveTab("comments")}
-//             className={`pb-4 text-sm font-medium transition-colors ${activeTab === "comments"
-//                 ? "border-b-2 border-primary text-foreground"
-//                 : "text-muted-foreground hover:text-foreground"
-//               }`}
-//           >
-//             Comments
-//           </button>
-//         </div>
-
-//         {activeTab === "projects" ? (
-//           <>
-//             {/* Title + Add button */}
-//             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-//               <div>
-//                 <h1 className="text-2xl font-bold text-foreground">Projects</h1>
-//                 <p className="mt-1 text-sm text-muted-foreground">
-//                   Manage the projects displayed on your portfolio.
-//                 </p>
-//               </div>
-//               <Button onClick={() => { setShowAddForm(true); setEditingProject(null) }}>
-//                 <Plus className="mr-1 h-4 w-4" />
-//                 Add Project
-//               </Button>
-//             </div>
-
-//             {error && (
-//               <div className="mb-6 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-//                 {error}
-//               </div>
-//             )}
-
-//             {/* Add / Edit form */}
-//             {(showAddForm || editingProject) && (
-//               <div className="mb-8 rounded-xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm">
-//                 <div className="mb-4 flex items-center justify-between">
-//                   <h2 className="text-lg font-semibold text-foreground">
-//                     {editingProject ? "Edit Project" : "New Project"}
-//                   </h2>
-//                   <Button
-//                     variant="ghost"
-//                     size="icon"
-//                     className="h-8 w-8"
-//                     onClick={() => {
-//                       setShowAddForm(false)
-//                       setEditingProject(null)
-//                       setError(null)
-//                     }}
-//                   >
-//                     <X className="h-4 w-4" />
-//                   </Button>
-//                 </div>
-//                 <form action={editingProject ? handleUpdate : handleAdd}>
-//                   <div className="flex flex-col gap-4">
-//                     <div className="flex flex-col gap-2">
-//                       <Label htmlFor="title">Project Title</Label>
-//                       <Input
-//                         id="title"
-//                         name="title"
-//                         placeholder="My Awesome Project"
-//                         required
-//                         defaultValue={editingProject?.title ?? ""}
-//                       />
-//                     </div>
-//                     <div className="flex flex-col gap-2">
-//                       <Label htmlFor="description">Description</Label>
-//                       <Textarea
-//                         id="description"
-//                         name="description"
-//                         placeholder="A brief description of the project..."
-//                         required
-//                         rows={3}
-//                         defaultValue={editingProject?.description ?? ""}
-//                       />
-//                     </div>
-//                     <div className="flex flex-col gap-2">
-//                       <Label htmlFor="url">Project URL</Label>
-//                       <Input
-//                         id="url"
-//                         name="url"
-//                         type="url"
-//                         placeholder="https://my-project.vercel.app"
-//                         required
-//                         defaultValue={editingProject?.url ?? ""}
-//                       />
-//                       <p className="text-xs text-muted-foreground">
-//                         The live URL where the project is running. It will be
-//                         displayed in an iframe on the portfolio.
-//                       </p>
-//                     </div>
-//                     <div className="flex items-center gap-3 pt-2">
-//                       <Button type="submit" disabled={isSubmitting}>
-//                         {isSubmitting
-//                           ? "Saving..."
-//                           : editingProject
-//                             ? "Update Project"
-//                             : "Add Project"}
-//                       </Button>
-//                       <Button
-//                         type="button"
-//                         variant="ghost"
-//                         onClick={() => {
-//                           setShowAddForm(false)
-//                           setEditingProject(null)
-//                           setError(null)
-//                         }}
-//                       >
-//                         Cancel
-//                       </Button>
-//                     </div>
-//                   </div>
-//                 </form>
-//               </div>
-//             )}
-
-//             {/* Projects list */}
-//             {projects.length === 0 ? (
-//               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-card/30 py-20">
-//                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-border/50 bg-card/50">
-//                   <FolderOpen className="h-6 w-6 text-muted-foreground/50" />
-//                 </div>
-//                 <p className="text-foreground">No projects yet</p>
-//                 <p className="mt-1 text-sm text-muted-foreground">
-//                   Click &quot;Add Project&quot; to get started.
-//                 </p>
-//               </div>
-//             ) : (
-//               <div className="flex flex-col gap-3">
-//                 {projects.map((project) => (
-//                   <div
-//                     key={project.id}
-//                     className="group flex items-center gap-4 rounded-xl border border-border/50 bg-card/50 p-4 backdrop-blur-sm transition-colors hover:border-border"
-//                   >
-//                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-//                       <FolderOpen className="h-5 w-5 text-primary" />
-//                     </div>
-
-//                     <div className="min-w-0 flex-1">
-//                       <h3 className="text-sm font-semibold text-foreground">
-//                         {project.title}
-//                       </h3>
-//                       <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-//                         {project.description}
-//                       </p>
-//                     </div>
-
-//                     <a
-//                       href={project.url}
-//                       target="_blank"
-//                       rel="noopener noreferrer"
-//                       className="hidden shrink-0 text-muted-foreground transition-colors hover:text-primary sm:block"
-//                       aria-label={`Visit ${project.title}`}
-//                     >
-//                       <ExternalLink className="h-4 w-4" />
-//                     </a>
-
-//                     <div className="flex shrink-0 items-center gap-1">
-//                       <Button
-//                         variant="ghost"
-//                         size="icon"
-//                         className="h-8 w-8 text-muted-foreground hover:text-foreground"
-//                         onClick={() => {
-//                           setEditingProject(project)
-//                           setShowAddForm(false)
-//                           setError(null)
-//                         }}
-//                       >
-//                         <Pencil className="h-3.5 w-3.5" />
-//                         <span className="sr-only">Edit {project.title}</span>
-//                       </Button>
-//                       <Button
-//                         variant="ghost"
-//                         size="icon"
-//                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
-//                         onClick={() => handleDelete(project.id)}
-//                       >
-//                         <Trash2 className="h-3.5 w-3.5" />
-//                         <span className="sr-only">Delete {project.title}</span>
-//                       </Button>
-//                     </div>
-//                   </div>
-//                 ))}
-//               </div>
-              
-//             )}
-//           </main>
-//     </div>
-//     </>
-//   )
-// }
