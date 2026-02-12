@@ -4,6 +4,11 @@ CREATE TABLE IF NOT EXISTS public.projects (
   title TEXT NOT NULL,
   description TEXT NOT NULL,
   url TEXT NOT NULL,
+  image_url TEXT,
+  image_focus_x INTEGER DEFAULT 50,
+  image_focus_y INTEGER DEFAULT 50,
+  published_at DATE,
+  show_published_date BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT now(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
 );

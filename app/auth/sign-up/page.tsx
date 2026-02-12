@@ -10,7 +10,7 @@ import { useState } from "react"
 import { UserPlus } from "lucide-react"
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState("joelmtn7@gmail.com")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +43,7 @@ export default function SignUpPage() {
         options: {
           emailRedirectTo:
             process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ||
-            `${window.location.origin}/admin`,
+            `${window.location.origin}/auth/callback?next=/admin`,
         },
       })
       if (error) throw error
@@ -110,7 +110,7 @@ export default function SignUpPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="joelmtn7@gmail.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
