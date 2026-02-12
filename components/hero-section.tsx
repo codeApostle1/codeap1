@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, Github, Linkedin, Twitter, Video } from "lucide-react"
+import { ArrowRight, Github, Linkedin, Twitter } from "lucide-react"
+import { TikTokIcon } from "@/components/icons/tiktok-icon"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 
@@ -92,7 +93,7 @@ export function HeroSection() {
             href="https://github.com/codeapostle1"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-primary"
+            className="rounded-lg border border-border/70 p-2 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
             aria-label="GitHub"
           >
             <Github className="h-5 w-5" />
@@ -101,7 +102,7 @@ export function HeroSection() {
             href="https://www.linkedin.com/in/joel-ademola-3a0468371"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-primary"
+            className="rounded-lg border border-border/70 p-2 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
             aria-label="LinkedIn"
           >
             <Linkedin className="h-5 w-5" />
@@ -110,7 +111,7 @@ export function HeroSection() {
             href="https://x.com/codeapostle1"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-primary"
+            className="rounded-lg border border-border/70 p-2 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
             aria-label="Twitter / X"
           >
             <Twitter className="h-5 w-5" />
@@ -119,10 +120,10 @@ export function HeroSection() {
             href="https://www.tiktok.com/@codeapostle1"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-primary"
+            className="rounded-lg border border-border/70 p-2 text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
             aria-label="TikTok"
           >
-            <Video className="h-5 w-5" />
+            <TikTokIcon className="h-5 w-5" />
           </a>
         </div>
       </div>
