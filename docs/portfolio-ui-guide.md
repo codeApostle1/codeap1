@@ -126,20 +126,3 @@ Week 5: Admin CRUD + moderation workflow.
 Week 6: Polish design + deploy.
 
 If you follow this structure, you can build a professional portfolio with real admin tools and dynamic content.
-
-
-## 10) `.env.local` example
-
-Copy `.env.local.example` to `.env.local` and fill real values:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-ADMIN_EMAILS=you@example.com
-NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/auth/callback?next=/admin
-```
-
-Tips:
-- `NEXT_PUBLIC_SUPABASE_*` values come from Supabase Dashboard → Project Settings → API.
-- `ADMIN_EMAILS` controls who can access `/admin`.
-- Keep `.env.local` out of git (it is already ignored in most Next.js setups).

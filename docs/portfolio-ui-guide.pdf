@@ -244,7 +244,7 @@ endobj
 endobj
 
 7 0 obj
-<< /Length 1972 >>
+<< /Length 1266 >>
 stream
 BT
 /F1 10 Tf
@@ -305,40 +305,6 @@ T*
 (If you follow this structure, you can build a professional portfolio with real admin tools) Tj
 T*
 (and dynamic content.) Tj
-T*
-() Tj
-T*
-() Tj
-T*
-(## 10\) `.env.local` example) Tj
-T*
-() Tj
-T*
-(Copy `.env.local.example` to `.env.local` and fill real values:) Tj
-T*
-() Tj
-T*
-(```env) Tj
-T*
-(NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co) Tj
-T*
-(NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY) Tj
-T*
-(ADMIN_EMAILS=you@example.com) Tj
-T*
-(NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000/auth/callback?next=/admin) Tj
-T*
-(```) Tj
-T*
-() Tj
-T*
-(Tips:) Tj
-T*
-(- `NEXT_PUBLIC_SUPABASE_*` values come from Supabase Dashboard → Project Settings → API.) Tj
-T*
-(- `ADMIN_EMAILS` controls who can access `/admin`.) Tj
-T*
-(- Keep `.env.local` out of git \(it is already ignored in most Next.js setups\).) Tj
 ET
 endstream
 endobj
@@ -361,10 +327,10 @@ xref
 0000002481 00000 n 
 0000004874 00000 n 
 0000005000 00000 n 
-0000007023 00000 n 
-0000007149 00000 n 
+0000006317 00000 n 
+0000006443 00000 n 
 trailer
 << /Size 10 /Root 1 0 R >>
 startxref
-7219
+6513
 %%EOF

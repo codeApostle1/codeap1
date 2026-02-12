@@ -9,10 +9,13 @@ function isAdminEmail(email?: string | null) {
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
 
-  const allowedEmails = adminEmails.length > 0 ? adminEmails : ["joelmtn7@gmail.com"]
+// <<<<<<< codex/review-folder-structure-and-ui-compliance-qzk9s9
+//   if (!email) return false
+//   if (adminEmails.length === 0) return true
+// =======
+  if (!email || adminEmails.length === 0) return false
 
-  if (!email) return false
-  return allowedEmails.includes(email.toLowerCase())
+  return adminEmails.includes(email.toLowerCase())
 }
 
 async function requireAdmin() {
@@ -30,45 +33,6 @@ async function requireAdmin() {
   }
 
   return { supabase, user, error: null }
-}
-
-async function uploadProjectImage(supabase: Awaited<ReturnType<typeof createClient>>, imageFile: File | null) {
-  if (!imageFile || imageFile.size === 0) {
-    return { imageUrl: null as string | null, error: null as string | null }
-  }
-
-  const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg"
-  const path = `projects/${Date.now()}-${crypto.randomUUID()}.${ext}`
-
-  const { error: uploadError } = await supabase.storage
-    .from("project-images")
-    .upload(path, imageFile, { upsert: false, cacheControl: "3600" })
-
-  if (uploadError) {
-    return { imageUrl: null, error: uploadError.message }
-  }
-
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("project-images").getPublicUrl(path)
-
-  return { imageUrl: publicUrl, error: null }
-}
-
-function parseFocus(value: FormDataEntryValue | null, fallback = 50) {
-  const parsed = Number(value ?? fallback)
-  if (Number.isNaN(parsed)) return fallback
-  return Math.max(0, Math.min(100, parsed))
-}
-
-function parseShowDate(value: FormDataEntryValue | null) {
-  return value === "on" || value === "true"
-}
-
-function parsePublishedDate(value: FormDataEntryValue | null) {
-  if (!value) return null
-  const parsed = String(value).trim()
-  return parsed.length > 0 ? parsed : null
 }
 
 export async function addProject(formData: FormData) {
