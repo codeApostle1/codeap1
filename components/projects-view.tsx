@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import {
@@ -11,6 +11,7 @@ import {
   PanelLeftOpen,
   Maximize2,
 } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
@@ -44,15 +45,22 @@ export function ProjectsView({
   const searchParams = useSearchParams()
   const preselectedId = searchParams.get("id")
 
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
-
-  useEffect(() => {
-    if (preselectedId && projects.length > 0) {
-      const found = projects.find((p) => p.id === preselectedId)
-      if (found) setSelectedProject(found)
+  const initialProject = useMemo(() => {
+    if (preselectedId) {
+      const found = projects.find((project) => project.id === preselectedId)
+      if (found) return found
     }
+
+    return projects[0] ?? null
   }, [preselectedId, projects])
+
+  const [selectedProject, setSelectedProject] = useState<Project | null>(initialProject)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const selectProject = (project: Project) => {
+    setSelectedProject(project)
+    setSidebarOpen(false)
+  }
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -72,17 +80,15 @@ export function ProjectsView({
             {"/>"}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {selectedProject && (
             <>
-              <a
-                href={selectedProject.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-primary"
-              >
-                <ExternalLink className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Open in new tab</span>
+              <a href={selectedProject.url} target="_blank" rel="noopener noreferrer" className="hidden sm:inline-flex">
+                <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-xs sm:text-sm">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Open
+                </Button>
               </a>
               <a
                 href={selectedProject.url}
@@ -111,9 +117,16 @@ export function ProjectsView({
         </div>
       </header>
 
-      {/* Main content area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+      <div className="relative flex flex-1 overflow-hidden">
+        {sidebarOpen && (
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="absolute inset-0 z-20 bg-black/40 md:hidden"
+            aria-label="Close project list"
+          />
+        )}
+
         <aside
           className={cn(
             "shrink-0 border-r border-border/70 bg-card/35 transition-all duration-300",
@@ -151,11 +164,29 @@ export function ProjectsView({
                 </div>
               </ScrollArea>
             </div>
-          )}
+            <ScrollArea className="flex-1">
+              <div className="flex flex-col gap-1 p-2">
+                {projects.map((project) => (
+                  <button
+                    key={project.id}
+                    onClick={() => selectProject(project)}
+                    className={cn(
+                      "group flex w-full flex-col items-start rounded-lg px-3 py-2.5 text-left transition-colors",
+                      selectedProject?.id === project.id
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                    )}
+                  >
+                    <span className="text-sm font-medium leading-tight">{project.title}</span>
+                    <span className="mt-0.5 line-clamp-2 text-xs opacity-60">{project.description}</span>
+                  </button>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         </aside>
 
-        {/* Main iframe area */}
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-hidden md:min-w-0">
           {selectedProject ? (
             <div className="flex h-full flex-col">
               {/* Project info bar */}
@@ -163,17 +194,12 @@ export function ProjectsView({
                 <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10">
                   <FolderOpen className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {selectedProject.title}
-                  </p>
-                </div>
-                <span className="shrink-0 truncate rounded-md bg-secondary/50 px-2 py-0.5 font-mono text-xs text-muted-foreground">
+                <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{selectedProject.title}</p>
+                <span className="max-w-full truncate rounded-md bg-secondary/50 px-2 py-0.5 font-mono text-[10px] text-muted-foreground sm:text-xs">
                   {selectedProject.url}
                 </span>
               </div>
 
-              {/* Main Content (Iframe + Comments) */}
               <ScrollArea className="flex-1">
                 <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto">
                   {/* Iframe Preview */}
@@ -186,50 +212,36 @@ export function ProjectsView({
                     />
                   </div>
 
-                  {/* Description & Links */}
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-3xl font-bold text-foreground">
-                        {selectedProject.title}
-                      </h2>
-                      <Button asChild>
-                        <a
-                          href={selectedProject.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                  <div className="flex flex-col gap-3 sm:gap-4">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <h2 className="text-xl font-bold text-foreground sm:text-3xl">{selectedProject.title}</h2>
+                      <Button asChild className="w-full sm:w-auto">
+                        <a href={selectedProject.url} target="_blank" rel="noopener noreferrer">
                           Visit Live Site
                           <ExternalLink className="ml-2 h-4 w-4" />
                         </a>
                       </Button>
                     </div>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
+                    <p className="text-sm leading-relaxed text-muted-foreground sm:text-lg">
                       {selectedProject.description}
                     </p>
                   </div>
 
-                  {/* Comments Section */}
                   <CommentsSection
                     projectId={selectedProject.id}
-                    initialComments={comments.filter(
-                      (c) => c.project_id === selectedProject.id
-                    )}
+                    initialComments={comments.filter((comment) => comment.project_id === selectedProject.id)}
                   />
                 </div>
               </ScrollArea>
             </div>
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+            <div className="flex h-full flex-col items-center justify-center gap-4 p-4 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-border/50 bg-card/50">
                 <FolderOpen className="h-7 w-7 text-muted-foreground/50" />
               </div>
               <div>
-                <p className="text-lg font-medium text-foreground">
-                  Select a project
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Choose a project from the sidebar to preview it here.
-                </p>
+                <p className="text-lg font-medium text-foreground">No projects yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">Add your first project from the admin dashboard.</p>
               </div>
             </div>
           )}
