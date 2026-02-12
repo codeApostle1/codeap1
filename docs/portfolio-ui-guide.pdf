@@ -1,0 +1,336 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R 8 0 R] /Count 3 >>
+endobj
+
+3 0 obj
+<< /Length 2177 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(# Portfolio Website Beginner Guide \(UI + Functionality\)) Tj
+T*
+() Tj
+T*
+(This guide explains how this portfolio is built so a complete beginner can recreate it.) Tj
+T*
+() Tj
+T*
+(## 1\) What the app contains) Tj
+T*
+() Tj
+T*
+(- A public portfolio homepage with sections \(hero, about, skills, projects, contact\).) Tj
+T*
+(- A projects listing page.) Tj
+T*
+(- Authentication pages \(login + sign-up\).) Tj
+T*
+(- An admin dashboard where the owner can manage projects and moderate comments.) Tj
+T*
+() Tj
+T*
+(## 2\) Core app structure) Tj
+T*
+() Tj
+T*
+(- `app/layout.tsx`: wraps all pages with global providers and styles.) Tj
+T*
+(- `app/page.tsx`: public homepage that composes section components.) Tj
+T*
+(- `app/projects/page.tsx`: projects list page.) Tj
+T*
+(- `app/admin/page.tsx`: protected admin area.) Tj
+T*
+(- `components/*`: reusable UI blocks \(navbar, hero, featured projects, dashboard\).) Tj
+T*
+(- `app/admin/actions.ts`: secure server actions for admin CRUD operations.) Tj
+T*
+(- `app/globals.css`: global styles and design tokens.) Tj
+T*
+() Tj
+T*
+(## 3\) Essential UI composition \(the "page assembly" idea\)) Tj
+T*
+() Tj
+T*
+(The homepage is built by stacking reusable sections in `app/page.tsx`:) Tj
+T*
+() Tj
+T*
+(```tsx) Tj
+T*
+(<Navbar />) Tj
+T*
+(<HeroSection />) Tj
+T*
+(<AboutSection />) Tj
+T*
+(<SkillsSection />) Tj
+T*
+(<FeaturedProjects />) Tj
+T*
+(<ContactSection />) Tj
+T*
+(<Footer />) Tj
+T*
+(```) Tj
+T*
+() Tj
+T*
+(Beginner lesson: each section is an independent component. This makes your project easy to) Tj
+T*
+(grow.) Tj
+T*
+() Tj
+T*
+(## 4\) Vital styling lines \(how design is controlled\)) Tj
+T*
+() Tj
+T*
+(### A\) Layout + surface) Tj
+T*
+() Tj
+T*
+(- `min-h-screen bg-background`: ensures full viewport height and theme-aware background.) Tj
+T*
+(- `fixed ... backdrop-blur-xl`: sticky glass-style navbar.) Tj
+T*
+(- Tailwind utility classes are used directly in JSX to style spacing, colors, typography,) Tj
+T*
+(and responsive behavior.) Tj
+T*
+() Tj
+T*
+(### B\) Responsive navigation) Tj
+T*
+() Tj
+T*
+(In `components/navbar.tsx`, the menu uses:) Tj
+T*
+() Tj
+T*
+(- `md:flex` / `md:hidden` to switch desktop vs mobile layout.) Tj
+ET
+endstream
+endobj
+
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 9 0 R >> >> /Contents 3 0 R >>
+endobj
+
+5 0 obj
+<< /Length 2342 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+(- `useState\(false\)` and menu button toggling for mobile drawer behavior.) Tj
+T*
+() Tj
+T*
+(### C\) Theming) Tj
+T*
+() Tj
+T*
+(`ThemeToggle` component appears in navbar and uses project theme setup for dark/light mode.) Tj
+T*
+() Tj
+T*
+(## 5\) Vital functionality lines \(admin + data\)) Tj
+T*
+() Tj
+T*
+(### A\) Admin authorization guard) Tj
+T*
+() Tj
+T*
+(In `app/admin/actions.ts`, every critical action starts with:) Tj
+T*
+() Tj
+T*
+(1. Create Supabase server client.) Tj
+T*
+(2. Verify authenticated user.) Tj
+T*
+(3. Verify user is admin email \(`isAdminEmail`\).) Tj
+T*
+() Tj
+T*
+(This pattern protects writes like add/update/delete projects.) Tj
+T*
+() Tj
+T*
+(### B\) Project creation/update) Tj
+T*
+() Tj
+T*
+(`addProject` and `updateProject` both:) Tj
+T*
+() Tj
+T*
+(- Parse form fields.) Tj
+T*
+(- Validate required data.) Tj
+T*
+(- Optionally upload image to Supabase storage.) Tj
+T*
+(- Save `published_at` and `show_published_date` fields.) Tj
+T*
+(- Revalidate affected pages \(`/`, `/projects`, `/admin`\) so UI updates instantly.) Tj
+T*
+() Tj
+T*
+(### C\) Comment moderation) Tj
+T*
+() Tj
+T*
+(`approveComment`, `deleteComment`, and `replyToComment` provide admin moderation workflow.) Tj
+T*
+() Tj
+T*
+(## 6\) Step-by-step process for beginners) Tj
+T*
+() Tj
+T*
+(1. **Create a Next.js app** with App Router + TypeScript.) Tj
+T*
+(2. **Install Tailwind CSS** and create global design tokens in `app/globals.css`.) Tj
+T*
+(3. **Build reusable sections** \(`components/*`\) and compose them in `app/page.tsx`.) Tj
+T*
+(4. **Add Supabase**:) Tj
+T*
+(   - Create project.) Tj
+T*
+(   - Add env vars \(`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`\).) Tj
+T*
+(   - Create tables for projects/comments.) Tj
+T*
+(5. **Create auth pages** \(`/auth/login`, `/auth/sign-up`\) and callback route.) Tj
+T*
+(6. **Create admin dashboard** UI \(`components/admin-dashboard.tsx`\).) Tj
+T*
+(7. **Add server actions** \(`app/admin/actions.ts`\) for secure CRUD.) Tj
+T*
+(8. **Protect admin routes** by user + email allowlist checks.) Tj
+T*
+(9. **Display projects publicly** \(`FeaturedProjects`, `/projects`\).) Tj
+T*
+(10. **Test and build**:) Tj
+T*
+(    - `npm run build`) Tj
+T*
+(    - `npx tsc --noEmit`) Tj
+T*
+(    - `npm run lint` \(after setting proper eslint config/ignores\)) Tj
+T*
+() Tj
+T*
+(## 7\) Database essentials) Tj
+ET
+endstream
+endobj
+
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 9 0 R >> >> /Contents 5 0 R >>
+endobj
+
+7 0 obj
+<< /Length 1266 >>
+stream
+BT
+/F1 10 Tf
+50 790 Td
+14 TL
+() Tj
+T*
+(Minimum tables:) Tj
+T*
+() Tj
+T*
+(- `projects`: title, description, url, image_url, image_focus_x, image_focus_y,) Tj
+T*
+(published_at, show_published_date, user_id.) Tj
+T*
+(- `project_comments`: project_id, name, comment, parent_id, is_admin_reply, is_approved.) Tj
+T*
+() Tj
+T*
+(Also create a storage bucket \(for project images\), e.g. `project-images`.) Tj
+T*
+() Tj
+T*
+(## 8\) Why this architecture is beginner-friendly) Tj
+T*
+() Tj
+T*
+(- Components isolate UI complexity.) Tj
+T*
+(- Server actions isolate sensitive operations.) Tj
+T*
+(- Tailwind gives fast styling feedback.) Tj
+T*
+(- Revalidation keeps UI fresh after admin updates.) Tj
+T*
+(- Small files with clear responsibility are easier to learn.) Tj
+T*
+() Tj
+T*
+(## 9\) Learning roadmap \(if you have never coded\)) Tj
+T*
+() Tj
+T*
+(Week 1: HTML/CSS basics + React components.) Tj
+T*
+(Week 2: Next.js routing + props/state.) Tj
+T*
+(Week 3: Forms + validation + simple API concepts.) Tj
+T*
+(Week 4: Supabase auth + database + storage.) Tj
+T*
+(Week 5: Admin CRUD + moderation workflow.) Tj
+T*
+(Week 6: Polish design + deploy.) Tj
+T*
+() Tj
+T*
+(If you follow this structure, you can build a professional portfolio with real admin tools) Tj
+T*
+(and dynamic content.) Tj
+ET
+endstream
+endobj
+
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 9 0 R >> >> /Contents 7 0 R >>
+endobj
+
+9 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+
+xref
+0 10
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000002355 00000 n 
+0000002481 00000 n 
+0000004874 00000 n 
+0000005000 00000 n 
+0000006317 00000 n 
+0000006443 00000 n 
+trailer
+<< /Size 10 /Root 1 0 R >>
+startxref
+6513
+%%EOF
