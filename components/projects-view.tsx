@@ -64,8 +64,9 @@ export function ProjectsView({
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      <header className="flex shrink-0 items-center justify-between border-b border-border/70 bg-background/85 px-3 py-2.5 backdrop-blur-xl sm:px-4 sm:py-3">
-        <div className="flex items-center gap-2 sm:gap-3">
+      {/* Top bar */}
+      <header className="flex shrink-0 items-center justify-between border-b border-border/70 bg-background/85 px-4 py-3 backdrop-blur-xl">
+        <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
             <Link href="/">
               <ArrowLeft className="mr-1 h-4 w-4" />
@@ -89,7 +90,11 @@ export function ProjectsView({
                   Open
                 </Button>
               </a>
-              <a href={selectedProject.url} target="_blank" rel="noopener noreferrer" className="sm:hidden">
+              <a
+                href={selectedProject.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <Button variant="ghost" size="icon" className="h-9 w-9">
                   <Maximize2 className="h-4 w-4" />
                 </Button>
@@ -100,10 +105,14 @@ export function ProjectsView({
             variant="ghost"
             size="icon"
             className="h-9 w-9"
-            onClick={() => setSidebarOpen((prev) => !prev)}
+            onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
           >
-            {sidebarOpen ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeftOpen className="h-5 w-5" />}
+            {sidebarOpen ? (
+              <PanelLeftClose className="h-5 w-5" />
+            ) : (
+              <PanelLeftOpen className="h-5 w-5" />
+            )}
           </Button>
         </div>
       </header>
@@ -120,15 +129,40 @@ export function ProjectsView({
 
         <aside
           className={cn(
-            "absolute inset-y-0 left-0 z-30 w-[85vw] max-w-xs border-r border-border/70 bg-card/95 shadow-xl backdrop-blur transition-transform duration-300 md:static md:w-72 md:max-w-none md:bg-card/35 md:shadow-none",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+            "shrink-0 border-r border-border/70 bg-card/35 transition-all duration-300",
+            sidebarOpen ? "w-64 sm:w-72" : "w-0"
           )}
         >
-          <div className="flex h-full flex-col">
-            <div className="border-b border-border/60 px-4 py-3">
-              <p className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                All Projects ({projects.length})
-              </p>
+          {sidebarOpen && (
+            <div className="flex h-full flex-col">
+              <div className="border-b border-border/60 px-4 py-3">
+                <p className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  All Projects ({projects.length})
+                </p>
+              </div>
+              <ScrollArea className="flex-1">
+                <div className="flex flex-col gap-1 p-2">
+                  {projects.map((project) => (
+                    <button
+                      key={project.id}
+                      onClick={() => setSelectedProject(project)}
+                      className={cn(
+                        "group flex w-full flex-col items-start rounded-lg px-3 py-2.5 text-left transition-colors",
+                        selectedProject?.id === project.id
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                      )}
+                    >
+                      <span className="text-sm font-medium leading-tight">
+                        {project.title}
+                      </span>
+                      <span className="mt-0.5 line-clamp-1 text-xs opacity-60">
+                        {project.description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
             <ScrollArea className="flex-1">
               <div className="flex flex-col gap-1 p-2">
@@ -155,7 +189,8 @@ export function ProjectsView({
         <main className="flex-1 overflow-hidden md:min-w-0">
           {selectedProject ? (
             <div className="flex h-full flex-col">
-              <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-card/25 px-3 py-2 sm:px-4">
+              {/* Project info bar */}
+              <div className="flex items-center gap-3 border-b border-border/60 bg-card/25 px-4 py-2">
                 <div className="flex h-6 w-6 items-center justify-center rounded bg-primary/10">
                   <FolderOpen className="h-3.5 w-3.5 text-primary" />
                 </div>
@@ -166,7 +201,8 @@ export function ProjectsView({
               </div>
 
               <ScrollArea className="flex-1">
-                <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 p-3 sm:gap-6 sm:p-6">
+                <div className="flex flex-col gap-6 p-6 max-w-5xl mx-auto">
+                  {/* Iframe Preview */}
                   <div className="aspect-video w-full overflow-hidden rounded-xl border border-border/70 bg-background shadow-2xl">
                     <iframe
                       src={selectedProject.url}

@@ -1,9 +1,15 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Home, LogOut, Pencil, Plus, Trash2 } from "lucide-react"
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  LogOut,
+  Home,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -68,46 +74,15 @@ export function AdminDashboard({
   const [publishedAt, setPublishedAt] = useState("")
   const [showPublishedDate, setShowPublishedDate] = useState(true)
 
-  const objectUrlRef = useRef<string | null>(null)
-
-  const clearObjectPreview = () => {
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current)
-      objectUrlRef.current = null
-    }
-  }
-
-  useEffect(() => {
-    return () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current)
-      }
-    }
-  }, [])
-
-  const startAddProject = () => {
-    clearObjectPreview()
-    setShowAddForm(true)
-    setEditingProject(null)
-    setImagePreview(null)
-    setImageFocusX(50)
-    setImageFocusY(50)
-    setPublishedAt("")
-    setShowPublishedDate(true)
-    setError(null)
-  }
-
-  const startEditProject = (project: Project) => {
-    clearObjectPreview()
-    setEditingProject(project)
-    setShowAddForm(false)
-    setImagePreview(project.image_url ?? null)
-    setImageFocusX(Math.round(project.image_focus_x ?? 50))
-    setImageFocusY(Math.round(project.image_focus_y ?? 50))
-    setPublishedAt(project.published_at ?? "")
-    setShowPublishedDate(project.show_published_date ?? true)
-    setError(null)
-  }
+ df  useEffect(() => {
+    const focusX = Math.round(editingProject?.image_focus_x ?? 50)
+    const focusY = Math.round(editingProject?.image_focus_y ?? 50)
+    setImageFocusX(focusX)
+    setImageFocusY(focusY)
+    setImagePreview(editingProject?.image_url ?? null)
+    setPublishedAt(editingProject?.published_at ?? "")
+    setShowPublishedDate(editingProject?.show_published_date ?? true)
+  }, [editingProject])
 
   const activeImageUrl = useMemo(
     () => imagePreview ?? editingProject?.image_url ?? null,
@@ -115,20 +90,16 @@ export function AdminDashboard({
   )
 
   const handleImageSelect = (file?: File | null) => {
-    clearObjectPreview()
-
     if (!file) {
       setImagePreview(editingProject?.image_url ?? null)
       return
     }
 
     const url = URL.createObjectURL(file)
-    objectUrlRef.current = url
     setImagePreview(url)
   }
 
   const resetFormState = () => {
-    clearObjectPreview()
     setShowAddForm(false)
     setEditingProject(null)
     setImagePreview(null)
@@ -248,7 +219,13 @@ export function AdminDashboard({
               </div>
 
               <Button
-                onClick={startAddProject}
+                onClick={() => {
+                  setShowAddForm(true)
+                  setEditingProject(null)
+                  setImagePreview(null)
+                  setPublishedAt("")
+                  setShowPublishedDate(true)
+                }}
               >
                 <Plus className="mr-1 h-4 w-4" />
                 Add Project
@@ -390,7 +367,10 @@ export function AdminDashboard({
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => startEditProject(project)}
+                      onClick={() => {
+                        setEditingProject(project)
+                        setShowAddForm(false)
+                      }}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
