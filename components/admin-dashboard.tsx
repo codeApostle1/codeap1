@@ -74,7 +74,7 @@ export function AdminDashboard({
   const [publishedAt, setPublishedAt] = useState("")
   const [showPublishedDate, setShowPublishedDate] = useState(true)
 
- df  useEffect(() => {
+   useEffect(() => {
     const focusX = Math.round(editingProject?.image_focus_x ?? 50)
     const focusY = Math.round(editingProject?.image_focus_y ?? 50)
     setImageFocusX(focusX)
