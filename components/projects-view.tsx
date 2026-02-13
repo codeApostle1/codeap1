@@ -163,26 +163,7 @@ export function ProjectsView({
                   ))}
                 </div>
               </ScrollArea>
-            </div>
-            <ScrollArea className="flex-1">
-              <div className="flex flex-col gap-1 p-2">
-                {projects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() => selectProject(project)}
-                    className={cn(
-                      "group flex w-full flex-col items-start rounded-lg px-3 py-2.5 text-left transition-colors",
-                      selectedProject?.id === project.id
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-                    )}
-                  >
-                    <span className="text-sm font-medium leading-tight">{project.title}</span>
-                    <span className="mt-0.5 line-clamp-2 text-xs opacity-60">{project.description}</span>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
+            
           </div>
         </aside>
 
