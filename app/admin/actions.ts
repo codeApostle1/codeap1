@@ -72,9 +72,12 @@ export async function addProject(formData: FormData) {
   }
 
   revalidatePath("/admin")
-  revalidatePath("/")
-  revalidatePath("/projects")
-  return { success: true }
+    revalidatePath("/")
+    revalidatePath("/projects")
+    return { success: true }
+  } catch (error) {
+    return { error: normalizeError(error) }
+  }
 }
 
 export async function deleteProject(id: string) {
@@ -88,9 +91,12 @@ export async function deleteProject(id: string) {
   }
 
   revalidatePath("/admin")
-  revalidatePath("/")
-  revalidatePath("/projects")
-  return { success: true }
+    revalidatePath("/")
+    revalidatePath("/projects")
+    return { success: true }
+  } catch (error) {
+    return { error: normalizeError(error) }
+  }
 }
 
 export async function updateProject(id: string, formData: FormData) {
@@ -135,9 +141,12 @@ export async function updateProject(id: string, formData: FormData) {
   }
 
   revalidatePath("/admin")
-  revalidatePath("/")
-  revalidatePath("/projects")
-  return { success: true }
+    revalidatePath("/")
+    revalidatePath("/projects")
+    return { success: true }
+  } catch (error) {
+    return { error: normalizeError(error) }
+  }
 }
 
 export async function approveComment(id: string) {
@@ -152,8 +161,11 @@ export async function approveComment(id: string) {
   if (error) return { error: error.message }
 
   revalidatePath("/admin")
-  revalidatePath("/projects")
-  return { success: true }
+    revalidatePath("/projects")
+    return { success: true }
+  } catch (error) {
+    return { error: normalizeError(error) }
+  }
 }
 
 export async function deleteComment(id: string) {
@@ -165,8 +177,11 @@ export async function deleteComment(id: string) {
   if (error) return { error: error.message }
 
   revalidatePath("/admin")
-  revalidatePath("/projects")
-  return { success: true }
+    revalidatePath("/projects")
+    return { success: true }
+  } catch (error) {
+    return { error: normalizeError(error) }
+  }
 }
 
 export async function replyToComment(parentId: string, projectId: string, content: string) {
@@ -185,6 +200,9 @@ export async function replyToComment(parentId: string, projectId: string, conten
   if (error) return { error: error.message }
 
   revalidatePath("/admin")
-  revalidatePath("/projects")
-  return { success: true }
+    revalidatePath("/projects")
+    return { success: true }
+  } catch (error) {
+    return { error: normalizeError(error) }
+  }
 }
