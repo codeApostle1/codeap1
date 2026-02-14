@@ -163,8 +163,8 @@ export function ProjectsView({
                   ))}
                 </div>
               </ScrollArea>
-            
-          </div>
+            </div>
+          )}
         </aside>
 
         <main className="flex-1 overflow-hidden md:min-w-0">
