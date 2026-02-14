@@ -9,10 +9,10 @@ function isAdminEmail(email?: string | null) {
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean)
 
-// <<<<<<< codex/review-folder-structure-and-ui-compliance-qzk9s9
-//   if (!email) return false
-//   if (adminEmails.length === 0) return true
-// =======
+  // <<<<<<< codex/review-folder-structure-and-ui-compliance-qzk9s9
+  //   if (!email) return false
+  //   if (adminEmails.length === 0) return true
+  // =======
   if (!email || adminEmails.length === 0) return false
 
   return adminEmails.includes(email.toLowerCase())
@@ -52,26 +52,27 @@ export async function addProject(formData: FormData) {
     return { error: "All fields are required" }
   }
 
-  const { imageUrl, error: imageError } = await uploadProjectImage(supabase, image)
-  if (imageError) return { error: imageError }
+  try {
+    const { imageUrl, error: imageError } = await uploadProjectImage(supabase, image)
+    if (imageError) return { error: imageError }
 
-  const { error } = await supabase.from("projects").insert({
-    title,
-    description,
-    url,
-    user_id: user.id,
-    image_url: imageUrl,
-    image_focus_x: imageFocusX,
-    image_focus_y: imageFocusY,
-    published_at: publishedAt,
-    show_published_date: showPublishedDate,
-  })
+    const { error } = await supabase.from("projects").insert({
+      title,
+      description,
+      url,
+      user_id: user.id,
+      image_url: imageUrl,
+      image_focus_x: imageFocusX,
+      image_focus_y: imageFocusY,
+      published_at: publishedAt,
+      show_published_date: showPublishedDate,
+    })
 
-  if (error) {
-    return { error: error.message }
-  }
+    if (error) {
+      return { error: error.message }
+    }
 
-  revalidatePath("/admin")
+    revalidatePath("/admin")
     revalidatePath("/")
     revalidatePath("/projects")
     return { success: true }
@@ -84,13 +85,14 @@ export async function deleteProject(id: string) {
   const { supabase, error: authError } = await requireAdmin()
   if (authError || !supabase) return { error: authError }
 
-  const { error } = await supabase.from("projects").delete().eq("id", id)
+  try {
+    const { error } = await supabase.from("projects").delete().eq("id", id)
 
-  if (error) {
-    return { error: error.message }
-  }
+    if (error) {
+      return { error: error.message }
+    }
 
-  revalidatePath("/admin")
+    revalidatePath("/admin")
     revalidatePath("/")
     revalidatePath("/projects")
     return { success: true }
@@ -117,30 +119,31 @@ export async function updateProject(id: string, formData: FormData) {
     return { error: "All fields are required" }
   }
 
-  const { imageUrl, error: imageError } = await uploadProjectImage(supabase, image)
-  if (imageError) return { error: imageError }
+  try {
+    const { imageUrl, error: imageError } = await uploadProjectImage(supabase, image)
+    if (imageError) return { error: imageError }
 
-  const finalImageUrl = imageUrl ?? existingImageUrl
+    const finalImageUrl = imageUrl ?? existingImageUrl
 
-  const { error } = await supabase
-    .from("projects")
-    .update({
-      title,
-      description,
-      url,
-      image_url: finalImageUrl,
-      image_focus_x: imageFocusX,
-      image_focus_y: imageFocusY,
-      published_at: publishedAt,
-      show_published_date: showPublishedDate,
-    })
-    .eq("id", id)
+    const { error } = await supabase
+      .from("projects")
+      .update({
+        title,
+        description,
+        url,
+        image_url: finalImageUrl,
+        image_focus_x: imageFocusX,
+        image_focus_y: imageFocusY,
+        published_at: publishedAt,
+        show_published_date: showPublishedDate,
+      })
+      .eq("id", id)
 
-  if (error) {
-    return { error: error.message }
-  }
+    if (error) {
+      return { error: error.message }
+    }
 
-  revalidatePath("/admin")
+    revalidatePath("/admin")
     revalidatePath("/")
     revalidatePath("/projects")
     return { success: true }
@@ -153,14 +156,15 @@ export async function approveComment(id: string) {
   const { supabase, error: authError } = await requireAdmin()
   if (authError || !supabase) return { error: authError }
 
-  const { error } = await supabase
-    .from("project_comments")
-    .update({ is_approved: true })
-    .eq("id", id)
+  try {
+    const { error } = await supabase
+      .from("project_comments")
+      .update({ is_approved: true })
+      .eq("id", id)
 
-  if (error) return { error: error.message }
+    if (error) return { error: error.message }
 
-  revalidatePath("/admin")
+    revalidatePath("/admin")
     revalidatePath("/projects")
     return { success: true }
   } catch (error) {
@@ -172,11 +176,12 @@ export async function deleteComment(id: string) {
   const { supabase, error: authError } = await requireAdmin()
   if (authError || !supabase) return { error: authError }
 
-  const { error } = await supabase.from("project_comments").delete().eq("id", id)
+  try {
+    const { error } = await supabase.from("project_comments").delete().eq("id", id)
 
-  if (error) return { error: error.message }
+    if (error) return { error: error.message }
 
-  revalidatePath("/admin")
+    revalidatePath("/admin")
     revalidatePath("/projects")
     return { success: true }
   } catch (error) {
@@ -188,21 +193,74 @@ export async function replyToComment(parentId: string, projectId: string, conten
   const { supabase, error: authError } = await requireAdmin()
   if (authError || !supabase) return { error: authError }
 
-  const { error } = await supabase.from("project_comments").insert({
-    project_id: projectId,
-    parent_id: parentId,
-    comment: content,
-    name: "Admin",
-    is_admin_reply: true,
-    is_approved: true,
-  })
+  try {
+    const { error } = await supabase.from("project_comments").insert({
+      project_id: projectId,
+      parent_id: parentId,
+      comment: content,
+      name: "Admin",
+      is_admin_reply: true,
+      is_approved: true,
+    })
 
-  if (error) return { error: error.message }
+    if (error) return { error: error.message }
 
-  revalidatePath("/admin")
+    revalidatePath("/admin")
     revalidatePath("/projects")
     return { success: true }
   } catch (error) {
     return { error: normalizeError(error) }
+  }
+}
+
+function parseFocus(value: any, defaultValue: number): number {
+  const parsed = parseInt(String(value))
+  return isNaN(parsed) ? defaultValue : parsed
+}
+
+function parsePublishedDate(value: any): string | null {
+  if (!value) return null
+  const date = new Date(String(value))
+  return isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+function parseShowDate(value: any): boolean {
+  return value === "true" || value === true || value === "on"
+}
+
+function normalizeError(error: any): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  return "An unexpected error occurred"
+}
+
+async function uploadProjectImage(
+  supabase: any,
+  image: File | null
+): Promise<{ imageUrl: string | null; error: string | null }> {
+  if (!image || !(image instanceof File) || image.size === 0) {
+    return { imageUrl: null, error: null }
+  }
+
+  try {
+    const fileExt = image.name.split(".").pop()
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+    const filePath = `project-images/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from("portfolio")
+      .upload(filePath, image)
+
+    if (uploadError) {
+      return { imageUrl: null, error: uploadError.message }
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from("portfolio")
+      .getPublicUrl(filePath)
+
+    return { imageUrl: publicUrl, error: null }
+  } catch (error) {
+    return { imageUrl: null, error: normalizeError(error) }
   }
 }

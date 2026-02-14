@@ -37,6 +37,7 @@ export async function addComment(formData: FormData): Promise<{ error?: string; 
     }
 
     revalidatePath("/projects")
+    revalidatePath("/admin")
     return { success: true }
 }
 
