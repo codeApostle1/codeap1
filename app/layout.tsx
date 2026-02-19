@@ -1,31 +1,22 @@
-import React from "react"
-import type { Metadata } from "next"
-import { ThemeProvider } from "@/components/theme-provider"
-import "./globals.css"
+import type { Metadata } from "next";
+import "./globals.css";
+import { CartProvider } from "@/components/providers/cart-provider";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
-  title: "Ademola Joel | CodeApostle1 - Web Developer & Digital Creative",
-  description:
-    "Portfolio of Ademola Joel (CodeApostle1) — frontend-focused web developer, digital artist, and storyteller building modern web experiences with Next.js and React.",
-}
+  title: "Zara's Crunch",
+  description: "Food ordering app for Zara's Crunch in Kaduna",
+};
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="font-sans antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+    <html lang="en">
+      <body className="bg-amber-50 text-stone-900 antialiased">
+        <CartProvider>
+          <SiteHeader />
+          <main className="mx-auto min-h-screen w-full max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">{children}</main>
+        </CartProvider>
       </body>
     </html>
-  )
+  );
 }
