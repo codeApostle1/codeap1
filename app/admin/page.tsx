@@ -1,63 +1,26 @@
-import { createClient } from "@/lib/supabase/server"
-import { notFound, redirect } from "next/navigation"
-import { AdminDashboard } from "@/components/admin-dashboard"
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
-export const metadata = {
-  title: "Admin | Portfolio",
-  description: "Manage your portfolio projects.",
-}
+export default async function AdminDashboardPage() {
+  const supabase = await createClient();
+  const { data: orders } = await supabase.from("orders").select("id,status");
 
-
-const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-  .split(",")
-  .map((email) => email.trim().toLowerCase())
-  .filter(Boolean)
-
-function isAdminEmail(email?: string | null) {
-  if (!email) return false
-// <<<<<<< codex/review-folder-structure-and-ui-compliance-qzk9s9
-//   if (adminEmails.length === 0) return true
-// =======
-  if (adminEmails.length === 0) return false
-// >>>>>>> main
-  return adminEmails.includes(email.toLowerCase())
-}
-
-export default async function AdminPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    redirect("/auth/login")
-  }
-
-  if (!isAdminEmail(user.email)) {
-// <<<<<<< codex/review-folder-structure-and-ui-compliance-qzk9s9
-//     redirect("/auth/login")
-// =======
-    notFound()
-// >>>>>>> main
-  }
-
-  const { data: projects } = await supabase
-    .from("projects")
-    .select("*")
-    .order("created_at", { ascending: false })
-
-  const { data: comments } = await supabase
-    .from("project_comments")
-    .select("*")
-    .order("created_at", { ascending: true })
+  const total = orders?.length ?? 0;
+  const pending = orders?.filter((order) => order.status === "Pending").length ?? 0;
+  const completed = orders?.filter((order) => order.status === "Completed").length ?? 0;
 
   return (
-    
-    <AdminDashboard
-      projects={projects ?? []}
-      comments={comments ?? []}
-      userEmail={user.email ?? ""}
-    />
-  )
+    <div className="space-y-6">
+      <h1 className="section-title">Admin Dashboard</h1>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="surface-card"><p className="text-sm text-stone-500">Total Orders</p><p className="text-2xl font-bold">{total}</p></div>
+        <div className="surface-card"><p className="text-sm text-stone-500">Pending</p><p className="text-2xl font-bold">{pending}</p></div>
+        <div className="surface-card"><p className="text-sm text-stone-500">Completed</p><p className="text-2xl font-bold">{completed}</p></div>
+      </div>
+      <div className="flex gap-3">
+        <Link href="/admin/products" className="rounded-full bg-white px-4 py-2 shadow-sm">Manage Menu</Link>
+        <Link href="/admin/orders" className="rounded-full bg-rose-700 px-4 py-2 text-white">Manage Orders</Link>
+      </div>
+    </div>
+  );
 }
