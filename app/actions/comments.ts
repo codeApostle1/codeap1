@@ -23,11 +23,15 @@ export async function addComment(formData: FormData): Promise<{ error?: string; 
         return { error: "Comment must be under 1000 characters" }
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    const userId = user?.id || null
+
     const { error } = await supabase.from("project_comments").insert({
         name,
         comment,
         project_id: projectId,
         parent_id: parentId,
+        user_id: userId,
         is_approved: false,
     })
 
@@ -47,7 +51,7 @@ export async function getComments(project_id: string) {
         .from("project_comments")
         .select("*")
         .eq("project_id", project_id)
-        .eq("is_approved", true)
+        .or("is_approved.eq.true,is_admin_reply.eq.true")
         .order("created_at", { ascending: true })
 
     if (error) {
@@ -56,4 +60,24 @@ export async function getComments(project_id: string) {
     }
 
     return data
+}
+
+export async function deleteClientComment(id: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+        return { error: "Not logged in" }
+    }
+
+    const { error } = await supabase.from("project_comments").delete().eq("id", id).eq("user_id", user.id)
+
+    if (error) {
+        console.error("Error deleting comment:", error)
+        return { error: error.message }
+    }
+
+    revalidatePath("/projects")
+    revalidatePath("/admin")
+    return { success: true }
 }
