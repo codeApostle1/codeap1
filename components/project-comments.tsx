@@ -211,10 +211,7 @@ export function ProjectComments({ projectId }: { projectId: string }) {
         {/* Comment form */}
         {showForm && (
           <div className="mb-4 rounded-lg border border-border/40 bg-card/50 p-4 shadow-sm">
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              await handleSubmit(new FormData(e.currentTarget));
-            }} className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground font-medium">
                   Posting as: {currentUser && !isAnonymousMode ? currentUser.name : "Anonymous"}
@@ -231,24 +228,41 @@ export function ProjectComments({ projectId }: { projectId: string }) {
 
               {(!currentUser || isAnonymousMode) && (
                 <Input
-                  name="name"
+                  id="client-comment-name"
                   placeholder="Your name"
-                  required
                   maxLength={100}
                   className="h-8 text-sm"
                 />
               )}
               <Textarea
-                name="comment"
+                id="client-comment-text"
                 placeholder="Leave a comment on this project..."
-                required
                 maxLength={1000}
                 rows={3}
                 className="text-sm"
               />
               <div className="flex items-center gap-2 mt-1">
                 <Button
-                  type="submit"
+                  onClick={async () => {
+                    const nameEl = document.getElementById("client-comment-name") as HTMLInputElement | null
+                    const textEl = document.getElementById("client-comment-text") as HTMLTextAreaElement | null
+                    const nameVal = nameEl?.value?.trim() || ""
+                    const textVal = textEl?.value?.trim() || ""
+
+                    if (!textVal) {
+                      setError("Comment text is required")
+                      return
+                    }
+                    if ((!currentUser || isAnonymousMode) && !nameVal) {
+                      setError("Name is required")
+                      return
+                    }
+
+                    const fd = new FormData()
+                    fd.append("name", nameVal)
+                    fd.append("comment", textVal)
+                    await handleSubmit(fd)
+                  }}
                   size="sm"
                   disabled={isSubmitting}
                   className="h-7 gap-1.5 text-xs w-full sm:w-auto"
@@ -268,7 +282,7 @@ export function ProjectComments({ projectId }: { projectId: string }) {
                   Cancel
                 </Button>
               </div>
-            </form>
+            </div>
           </div>
         )}
 
