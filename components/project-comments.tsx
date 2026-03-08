@@ -211,7 +211,10 @@ export function ProjectComments({ projectId }: { projectId: string }) {
         {/* Comment form */}
         {showForm && (
           <div className="mb-4 rounded-lg border border-border/40 bg-card/50 p-4 shadow-sm">
-            <form action={handleSubmit} className="flex flex-col gap-3">
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await handleSubmit(new FormData(e.currentTarget));
+            }} className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground font-medium">
                   Posting as: {currentUser && !isAnonymousMode ? currentUser.name : "Anonymous"}
